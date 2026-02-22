@@ -31,7 +31,10 @@
             font-size: 0.9em;
             margin-bottom: 20px;
         }
-        .header {
+        
+        /* Header Styling */
+        .header-container {
+            position: relative;
             background: linear-gradient(135deg, #3498db, #2980b9);
             color: white;
             padding: 15px;
@@ -40,11 +43,10 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
-            position: relative;
         }
         .header-stat { font-weight: bold; }
         
-        /* Status Indicator für Auto-Run */
+        /* Status Indicator */
         .status-indicator {
             position: absolute;
             top: 10px;
@@ -56,6 +58,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            z-index: 10;
         }
         .dot {
             width: 10px;
@@ -82,7 +85,7 @@
         }
         @media (max-width: 768px) {
             .grid-layout { grid-template-columns: 1fr; }
-            .header { grid-template-columns: 1fr; }
+            .header-container { grid-template-columns: 1fr; }
         }
         .section-box {
             background-color: #f8f9fa;
@@ -121,13 +124,6 @@
             color: white;
             border-color: #2980b9;
         }
-        .menu button.action-btn {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            font-weight: bold;
-        }
-        .menu button.action-btn:hover { background-color: #219150; }
         .menu button.pause-btn {
             background-color: #e67e22;
             color: white;
@@ -205,7 +201,7 @@
             font-style: italic;
         }
 
-        /* Toast Notification (Auto-Run Feedback) */
+        /* Toast Notification */
         #toastContainer {
             position: fixed;
             top: 20px;
@@ -242,12 +238,17 @@
         <h1>🏠 Finanz Tycoon <span style="font-size:0.5em; vertical-align: middle; background:#f1c40f; color:#333; padding:2px 6px; border-radius:4px;">AUTO</span></h1>
         <div class="subtitle">Das Spiel läuft automatisch. Pausiere zum Handeln!</div>
         
-        <div class="header" id="header">
+        <!-- Header Container -->
+        <div class="header-container">
             <div class="status-indicator" id="gameStatus">
                 <div class="dot" id="statusDot"></div>
                 <span id="statusText">Läuft</span>
             </div>
-            <!-- Dynamisch generierter Header -->
+            
+            <div class="header-stat">💰 Bargeld: <span id="stat-cash">0€</span></div>
+            <div class="header-stat">📈 Nettovermögen: <span id="stat-networth">0€</span></div>
+            <div class="header-stat">📅 Datum: <span id="stat-date">01.2024</span></div>
+            <div class="header-stat">🏦 Schulden: <span id="stat-loan">0€</span></div>
         </div>
 
         <div class="grid-layout">
@@ -293,7 +294,7 @@
         </div>
     </div>
 
-<!-- Modals (wie im vorherigen Code, unverändert) -->
+<!-- Modals -->
 <div id="buyPropertyModal" class="modal">
     <div class="modal-content">
         <h2>Immobilie kaufen</h2>
@@ -443,13 +444,13 @@
         if (gameRunning) {
             btn.innerHTML = "⏸️ Pause";
             btn.classList.remove("paused");
-            dot.classList.remove("paused");
-            text.innerText = "Läuft";
+            if(dot) dot.classList.remove("paused");
+            if(text) text.innerText = "Läuft";
         } else {
             btn.innerHTML = "▶️ Weiter";
             btn.classList.add("paused");
-            dot.classList.add("paused");
-            text.innerText = "Pausiert";
+            if(dot) dot.classList.add("paused");
+            if(text) text.innerText = "Pausiert";
         }
     }
 
@@ -460,29 +461,23 @@
         gameTimer = setTimeout(tick, gameSpeed);
     }
 
-    // --- UI UPDATES ---
+    // --- UI UPDATES (Sicherere Methode) ---
     function updateUI() {
-        updateHeader();
+        updateHeaderStats();
         updatePropertiesList();
         updateStocksList();
         updateEtfList();
         updateLoanInfo();
     }
 
-    function updateHeader() {
-        const header = document.getElementById("header");
+    // Nur die Zahlen im Header updaten, nicht das ganze HTML zerstören
+    function updateHeaderStats() {
         const netWorth = calculateNetWorth();
-        // Wir lassen das Status-Indicator Div separat, also bauen wir den Header neu auf ohne es zu überschreiben (oder fügen es wieder ein)
-        // Einfacher: Header Inhalt neu setzen, aber Status Indicator muss erhalten bleiben oder neu generiert werden.
-        // Da der Status Indicator absolute Position hat, überschreiben wir ihn hier nicht, sondern fügen ihn im HTML fest ein.
-        // Aber da wir innerHTML setzen, löschen wir ihn. Also fügen wir ihn hier wieder ein:
         
-        const statusHTML = document.getElementById("gameStatus").outerHTML;
-        
-        header.innerHTML = `
-            <LaTex>id_31</LaTex>{formatMoney(player.cash)}</div>
-            <div class="header-stat">📈 Nettovermögen: <LaTex>id_30</LaTex>{player.month}. <LaTex>id_29</LaTex>{formatMoney(player.loan)}</div>
-        `;
+        document.getElementById('stat-cash').innerText = formatMoney(player.cash);
+        document.getElementById('stat-networth').innerText = formatMoney(netWorth);
+        document.getElementById('stat-date').innerText = `${player.month}. ${player.year}`;
+        document.getElementById('stat-loan').innerText = formatMoney(player.loan);
     }
 
     function updatePropertiesList() {
@@ -503,8 +498,38 @@
             html += `
                 <div class="item-card">
                     <div>
-                        <strong><LaTex>id_28</LaTex>{formatMoney(prop.rent)} | Kosten: -<LaTex>id_27</LaTex>{formatMoney(prop.basePrice)}</div>
-                        <small>Lvl <LaTex>id_26</LaTex>{formatMoney(totalRent)}</span> | Gesamtkosten: <span class="negative">-<LaTex>id_25</LaTex>{name}</strong> (<LaTex>id_24</LaTex>{formatMoney(stock.price)} | Div: ~<LaTex>id_23</LaTex>{formatMoney(value)}</strong></div>
+                        <strong>${prop.name}</strong><br>
+                        <small>Miete: +${formatMoney(prop.rent)} | Kosten: -${formatMoney(prop.maintenance)}</small>
+                    </div>
+                    <div style="text-align:right">
+                        <div>${formatMoney(prop.basePrice)}</div>
+                        <small>Lvl ${prop.level || 1}</small>
+                    </div>
+                </div>
+            `;
+        });
+        div.innerHTML = html;
+        document.getElementById("propertyStats").innerHTML = `Gesamt Mieteinnahmen: <span class="positive">+${formatMoney(totalRent)}</span> | Gesamtkosten: <span class="negative">-${formatMoney(totalMaint)}</span>`;
+    }
+
+    function updateStocksList() {
+        const div = document.getElementById("stocksList");
+        let html = "";
+        let hasStocks = false;
+        
+        for (const [name, amount] of Object.entries(player.stocks)) {
+            if (amount > 0) {
+                hasStocks = true;
+                const stock = availableStocks.find(s => s.name === name);
+                const value = amount * stock.price;
+                const divIncome = (value * stock.dividendYield).toFixed(2);
+                html += `
+                    <div class="item-card">
+                        <div>
+                            <strong>${name}</strong> (${amount} Stk.)<br>
+                            <small>Kurs: ${formatMoney(stock.price)} | Div: ~${formatMoney(divIncome)}/Monat</small>
+                        </div>
+                        <div><strong>${formatMoney(value)}</strong></div>
                     </div>
                 `;
             }
@@ -522,14 +547,53 @@
         div.innerHTML = `
             <div class="item-card">
                 <div>
-                    <strong>Welt-ETF</strong> (<LaTex>id_22</LaTex>{formatMoney(etfPrice)} | Div: ~<LaTex>id_21</LaTex>{formatMoney(value)}</strong></div>
+                    <strong>Welt-ETF</strong> (${player.etfShares} Anteile)<br>
+                    <small>Kurs: ${formatMoney(etfPrice)} | Div: ~${formatMoney(divIncome)}/Monat</small>
+                </div>
+                <div><strong>${formatMoney(value)}</strong></div>
             </div>
         `;
         
         const savingsInterest = (player.cash * player.savingsInterest).toFixed(2);
-        document.getElementById("savingsInfo").innerHTML = `Tagesgeld-Zinsen: <span class="positive">+<LaTex>id_20</LaTex>{formatMoney(interestCost)}</small>
+        document.getElementById("savingsInfo").innerHTML = `Tagesgeld-Zinsen: <span class="positive">+${formatMoney(savingsInterest)}/Monat</span>`;
+    }
+
+    function updateLoanInfo() {
+        const div = document.getElementById("loanInfo");
+        const interestCost = (player.loan * player.loanInterestRate).toFixed(2);
+        div.innerHTML = `
+            <div class="item-card" style="background:#fff5f5; border-color:#ffcccc;">
+                <div>
+                    <strong>Aktuelle Schulden</strong><br>
+                    <small>Monatliche Zinslast: -${formatMoney(interestCost)}</small>
                 </div>
-                <div class="negative"><strong><LaTex>id_19</LaTex>{economyState}</strong> | Inflation: <LaTex>id_18</LaTex>{type}`;
+                <div class="negative"><strong>${formatMoney(player.loan)}</strong></div>
+            </div>
+        `;
+        document.getElementById("economyInfo").innerHTML = `Wirtschaft: <strong>${economyState}</strong> | Inflation: ${(player.inflationRate*1200).toFixed(1)}% p.a.`;
+    }
+
+    // --- LOGIK ---
+
+    function calculateNetWorth() {
+        let propValue = player.properties.reduce((sum, p) => sum + p.basePrice, 0);
+        let stockValue = 0;
+        for (const [name, amount] of Object.entries(player.stocks)) {
+            const stock = availableStocks.find(s => s.name === name);
+            if(stock) stockValue += amount * stock.price;
+        }
+        let etfValue = player.etfShares * etfPrice;
+        return player.cash + propValue + stockValue + etfValue - player.loan;
+    }
+
+    function formatMoney(amount) {
+        return amount.toLocaleString('de-DE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+    }
+
+    function showToast(message, type = "success") {
+        const container = document.getElementById("toastContainer");
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
         toast.innerHTML = message;
         container.appendChild(toast);
         
@@ -588,10 +652,48 @@
         if (Math.random() < 0.1 && player.properties.length > 0) {
             const repairCost = 500 + Math.random() * 1000;
             expenses += repairCost;
-            eventMsg = `⚠️ Reparatur: -<LaTex>id_17</LaTex>{eventMsg} | ` : "";
+            eventMsg = `⚠️ Reparatur: -${formatMoney(repairCost)}`;
+        }
+
+        const balance = income - expenses;
+        player.cash += balance;
+
+        // 4. Preise anpassen
+        player.properties.forEach(p => {
+            p.basePrice *= (1 + player.inflationRate);
+            p.rent *= (1 + (player.inflationRate * 0.5));
+        });
+
+        availableStocks.forEach(stock => {
+            let change = (Math.random() - 0.5) * 2 * stock.volatility;
+            if (economyState === EconomyState.BOOM) change += 0.05;
+            if (economyState === EconomyState.RECESSION) change -= 0.05;
+            if (economyState === EconomyState.DEPRESSION) change -= 0.15;
+            stock.price *= (1 + change);
+            if(stock.price < 1) stock.price = 1;
+        });
+
+        let etfChange = (Math.random() - 0.45) * 0.04;
+        if (economyState === EconomyState.BOOM) etfChange += 0.02;
+        if (economyState === EconomyState.DEPRESSION) etfChange -= 0.05;
+        etfPrice *= (1 + etfChange);
+
+        // 5. Game Over Check
+        if (player.cash < -10000) {
+            stopGameLoop();
+            alert("💀 GAME OVER! Du bist zahlungsunfähig.");
+            startGame();
+            return;
+        }
+
+        updateUI();
+        
+        // Zeige nur alle 12 Monate (Jahr) oder bei großen Ereignissen eine Toast
+        if (player.month === 1 || eventMsg !== "") {
+            const msg = eventMsg ? `${eventMsg} | ` : "";
             const color = balance >= 0 ? "success" : "danger";
             const sign = balance >= 0 ? "+" : "";
-            showToast(`📅 Monat <LaTex>id_16</LaTex>{msg}Saldo: <LaTex>id_15</LaTex>{formatMoney(balance)}`, color);
+            showToast(`📅 Monat ${player.month}: ${msg}Saldo: ${sign}${formatMoney(balance)}`, color);
         }
     }
 
@@ -604,7 +706,6 @@
     }
 
     // --- MODAL FUNKTIONEN ---
-    // Beim Öffnen eines Modals pausieren wir das Spiel automatisch, damit der Nutzer in Ruhe klicken kann
     function openModal(id) { 
         stopGameLoop(); 
         document.getElementById(id).style.display = "flex"; 
@@ -612,7 +713,6 @@
     
     function closeModal(id) { 
         document.getElementById(id).style.display = "none"; 
-        // Spiel erst fortsetzen, wenn Modal zu ist
         startGameLoop(); 
     }
 
@@ -622,8 +722,10 @@
         availableProperties.forEach((prop, idx) => {
             html += `
                 <div class="item-card" style="display:block;">
-                    <strong><LaTex>id_14</LaTex>{prop.type})<br>
-                    Preis: <LaTex>id_13</LaTex>{formatMoney(prop.rent)} | Kosten: <LaTex>id_12</LaTex>{idx})" style="margin-top:5px; font-size:0.8em; padding:5px 10px;">Kaufen</button>
+                    <strong>${prop.name}</strong> (${prop.type})<br>
+                    Preis: ${formatMoney(prop.basePrice)}<br>
+                    Miete: ${formatMoney(prop.rent)} | Kosten: ${formatMoney(prop.maintenance)}<br>
+                    <button onclick="buyProperty(${idx})" style="margin-top:5px; font-size:0.8em; padding:5px 10px;">Kaufen</button>
                 </div>
             `;
         });
@@ -638,7 +740,40 @@
             player.properties.push({ ...prop, level: 1, id: Date.now() });
             updateUI();
             closeModal("buyPropertyModal");
-            showToast(`✅ <LaTex>id_11</LaTex>{prop.name} (Wert: <LaTex>id_10</LaTex>{idx})" style="background:#e74c3c; font-size:0.8em; padding:5px 10px;">Verkaufen für <LaTex>id_9</LaTex>{formatMoney(sellPrice)}`, "success");
+            showToast(`✅ ${prop.name} gekauft!`, "success");
+        } else {
+            alert("Nicht genug Geld!");
+        }
+    }
+
+    function openSellPropertyModal() {
+        const content = document.getElementById("sellPropertyContent");
+        if(player.properties.length === 0) {
+            content.innerHTML = "<p>Keine Immobilien.</p>";
+        } else {
+            let html = "";
+            player.properties.forEach((prop, idx) => {
+                const sellPrice = prop.basePrice * 0.95;
+                html += `
+                    <div class="item-card">
+                        <div>${prop.name} (Wert: ${formatMoney(prop.basePrice)})</div>
+                        <button onclick="sellProperty(${idx})" style="background:#e74c3c; font-size:0.8em; padding:5px 10px;">Verkaufen für ${formatMoney(sellPrice)}</button>
+                    </div>
+                `;
+            });
+            content.innerHTML = html;
+        }
+        openModal("sellPropertyModal");
+    }
+
+    function sellProperty(idx) {
+        const prop = player.properties[idx];
+        const sellPrice = prop.basePrice * 0.95;
+        player.cash += sellPrice;
+        player.properties.splice(idx, 1);
+        updateUI();
+        closeModal("sellPropertyModal");
+        showToast(`✅ Verkaufserlös: ${formatMoney(sellPrice)}`, "success");
     }
 
     function openUpgradePropertyModal() {
@@ -651,8 +786,8 @@
                 const cost = prop.basePrice * 0.1;
                 html += `
                     <div class="item-card">
-                        <div><LaTex>id_8</LaTex>{prop.level})</div>
-                        <button onclick="upgradeProperty(<LaTex>id_7</LaTex>{formatMoney(cost)})</button>
+                        <div>${prop.name} (Lvl ${prop.level})</div>
+                        <button onclick="upgradeProperty(${idx})" style="font-size:0.8em; padding:5px 10px;">Renovieren (${formatMoney(cost)})</button>
                     </div>
                 `;
             });
@@ -685,8 +820,23 @@
             html += `
                 <div class="item-card">
                     <div>
-                        <strong><LaTex>id_6</LaTex>{formatMoney(stock.price)} | Div: <LaTex>id_5</LaTex>{idx}" value="1" min="1" style="width:50px;">
-                        <button onclick="buyStock(<LaTex>id_4</LaTex>{idx}`);
+                        <strong>${stock.name}</strong><br>
+                        <small>Kurs: ${formatMoney(stock.price)} | Div: ${(stock.dividendYield*100).toFixed(1)}%/Monat</small>
+                    </div>
+                    <div>
+                        <input type="number" id="buyStockQty${idx}" value="1" min="1" style="width:50px;">
+                        <button onclick="buyStock(${idx})" style="font-size:0.8em; padding:5px;">Kaufen</button>
+                    </div>
+                </div>
+            `;
+        });
+        content.innerHTML = html;
+        openModal("buyStockModal");
+    }
+
+    function buyStock(idx) {
+        const stock = availableStocks[idx];
+        const qtyInput = document.getElementById(`buyStockQty${idx}`);
         const qty = parseInt(qtyInput.value);
         const cost = qty * stock.price;
 
@@ -696,7 +846,7 @@
             player.stocks[stock.name] += qty;
             updateUI();
             closeModal("buyStockModal");
-            showToast(`✅ <LaTex>id_3</LaTex>{stock.name} gekauft`, "success");
+            showToast(`✅ ${qty}x ${stock.name} gekauft`, "success");
         } else {
             alert("Nicht genug Geld!");
         }
@@ -726,7 +876,8 @@
     function openLoanModal() {
         const maxLoan = player.cash * 3;
         document.getElementById("loanContent").innerHTML = `
-            <p>Maximaler Kreditrahmen: <LaTex>id_2</LaTex>{(player.loanInterestRate*100).toFixed(1)}% pro Monat</p>
+            <p>Maximaler Kreditrahmen: ${formatMoney(maxLoan)}</p>
+            <p>Zinssatz: ${(player.loanInterestRate*100).toFixed(1)}% pro Monat</p>
             <input type="number" id="loanAmount" placeholder="Betrag" min="1000" step="1000">
             <button onclick="takeLoan()">Aufnehmen</button>
         `;
@@ -741,7 +892,15 @@
             player.loan += amount;
             updateUI();
             closeModal("loanModal");
-            showToast(`💰 Kredit aufgenommen: <LaTex>id_1</LaTex>{formatMoney(player.loan)}</p>
+            showToast(`💰 Kredit aufgenommen: ${formatMoney(amount)}`, "success");
+        } else {
+            alert("Ungültiger Betrag oder Limit überschritten!");
+        }
+    }
+
+    function openRepayLoanModal() {
+        document.getElementById("repayLoanContent").innerHTML = `
+            <p>Aktuelle Schulden: ${formatMoney(player.loan)}</p>
             <input type="number" id="repayAmount" placeholder="Betrag" min="100">
             <button onclick="repayLoan()">Tilgen</button>
         `;
@@ -758,4 +917,14 @@
             closeModal("repayLoanModal");
             showToast(`📉 Schulden getilgt: ${formatMoney(actualRepay)}`, "success");
         } else {
-            alert("Ungültiger Betrag oder nicht genug Cash
+            alert("Ungültiger Betrag oder nicht genug Cash!");
+        }
+    }
+
+    // Start
+    window.onload = startGame;
+
+</script>
+</body>
+</html>
+
