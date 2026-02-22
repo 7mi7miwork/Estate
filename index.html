@@ -21,7 +21,7 @@
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 10px; /* Weniger Padding auf Mobile */
+            padding: 10px;
             -webkit-tap-highlight-color: transparent;
         }
 
@@ -32,6 +32,7 @@
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding-bottom: 40px; /* Platz für Footer */
         }
 
         h1 {
@@ -57,7 +58,7 @@
             border-radius: 8px;
             margin-bottom: 20px;
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 Spalten standard */
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
         }
 
@@ -102,7 +103,7 @@
         /* Main Grid Layout */
         .grid-layout {
             display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3 Spalten Desktop */
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
         }
 
@@ -112,10 +113,9 @@
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 15px;
-            /* Scrollbar innerhalb der Box wenn zu viele Items */
             max-height: 400px;
             overflow-y: auto; 
-            -webkit-overflow-scrolling: touch; /* Smooth scroll on iOS */
+            -webkit-overflow-scrolling: touch;
         }
 
         .section-title {
@@ -134,7 +134,7 @@
         /* Menu Buttons */
         .menu {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); /* Flexible Buttons */
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
             gap: 8px;
             margin-top: 20px;
             padding-top: 20px;
@@ -150,7 +150,7 @@
             cursor: pointer;
             font-size: 0.9rem;
             transition: all 0.2s;
-            white-space: normal; /* Text darf umbrechen */
+            white-space: normal;
             line-height: 1.2;
         }
 
@@ -169,7 +169,7 @@
             color: white;
             border: none;
             font-weight: bold;
-            grid-column: span 2; /* Pause Button breiter */
+            grid-column: span 2;
         }
         
         .menu button.pause-btn.paused {
@@ -211,7 +211,7 @@
             background-color: white;
             padding: 20px;
             border-radius: 12px;
-            width: 90%; /* Wichtig für Mobile */
+            width: 90%;
             max-width: 500px;
             max-height: 85vh;
             overflow-y: auto;
@@ -227,7 +227,7 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 1rem;
-            width: 100%; /* Full width buttons in modal on mobile */
+            width: 100%;
         }
         .modal button.cancel { background-color: #95a5a6; }
         
@@ -304,30 +304,42 @@
             color: var(--primary-dark);
         }
 
+        /* Footer Styling */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #95a5a6;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .footer span {
+            color: var(--primary);
+        }
+
         /* --- RESPONSIVE MEDIA QUERIES --- */
         
-        /* Tablet & Mobile */
         @media (max-width: 900px) {
             .grid-layout {
-                grid-template-columns: 1fr; /* Alles untereinander */
+                grid-template-columns: 1fr;
             }
             .section-box {
-                max-height: 300px; /* Weniger Höhe auf Mobile */
+                max-height: 300px;
             }
             .header-container {
                 grid-template-columns: 1fr 1fr;
-                padding-top: 25px; /* Platz für Language Selector */
+                padding-top: 25px;
             }
         }
 
-        /* Small Mobile */
         @media (max-width: 480px) {
             body { padding: 5px; }
             .container { padding: 15px; }
             h1 { font-size: 1.2rem; }
             
             .header-container {
-                grid-template-columns: 1fr; /* Header Stats untereinander */
+                grid-template-columns: 1fr;
                 gap: 5px;
                 padding-top: 30px;
             }
@@ -344,11 +356,11 @@
             }
 
             .menu {
-                grid-template-columns: repeat(2, 1fr); /* 2 Buttons pro Reihe */
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .menu button.pause-btn {
-                grid-column: span 2; /* Pause über ganze Breite */
+                grid-column: span 2;
             }
 
             .item-card {
@@ -403,7 +415,7 @@
                 </div>
             </div>
 
-            <!-- Spalte 2: Unternehmen (NEU) -->
+            <!-- Spalte 2: Unternehmen -->
             <div>
                 <div class="section-box">
                     <div class="section-title" data-i18n="companies_title">🏭 Unternehmen</div>
@@ -447,6 +459,11 @@
             <button onclick="openLoanModal()">💰 <span data-i18n="btn_loan">Kredit</span></button>
             <button onclick="openRepayLoanModal()">📉 <span data-i18n="btn_repay">Tilgen</span></button>
         </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            Created by <span>Michael (其米）</span>
+        </div>
     </div>
 
 <!-- Modals -->
@@ -475,7 +492,7 @@
     </div>
 </div>
 
-<!-- Firmen Modals (NEU) -->
+<!-- Firmen Modals -->
 <div id="buyCompanyModal" class="modal">
     <div class="modal-content">
         <h2 data-i18n="modal_start_company_title">Firma gründen</h2>
@@ -810,7 +827,7 @@
         loan: 0,
         loanInterestRate: 0.005,
         properties: [],
-        companies: [], // NEU
+        companies: [],
         stocks: {}, 
         etfShares: 0,
         month: 1,
@@ -840,7 +857,7 @@
         { name: "Einkaufszentrum", type: "Gewerbe", basePrice: 1500000, rent: 12000, maintenance: 2000 },
     ];
 
-    // --- DATEN: UNTERNEHMEN (NEU) ---
+    // --- DATEN: UNTERNEHMEN ---
     const availableCompanies = [
         { name: "Kiosk / Café", type: "Kleingewerbe", basePrice: 20000, profit: 300, maintenance: 50 },
         { name: "Handwerksbetrieb", type: "Mittelstand", basePrice: 100000, profit: 1200, maintenance: 200 },
@@ -920,7 +937,7 @@
     function updateUI() {
         updateHeaderStats();
         updatePropertiesList();
-        updateCompaniesList(); // NEU
+        updateCompaniesList();
         updateStocksList();
         updateEtfList();
         updateLoanInfo();
@@ -966,7 +983,6 @@
         document.getElementById("propertyStats").innerHTML = `${t('lbl_total_rent')}: <span class="positive">+${formatMoney(totalRent)}</span> | ${t('lbl_total_cost')}: <span class="negative">-${formatMoney(totalMaint)}</span>`;
     }
 
-    // NEU: Unternehmen Liste
     function updateCompaniesList() {
         const div = document.getElementById("companiesList");
         if (player.companies.length === 0) {
@@ -1100,7 +1116,7 @@
         const propMaint = player.properties.reduce((sum, p) => sum + p.maintenance, 0);
         expenses += propMaint;
 
-        // Unternehmen (NEU)
+        // Unternehmen
         const compProfit = player.companies.reduce((sum, c) => sum + c.profit, 0);
         income += compProfit;
         const compMaint = player.companies.reduce((sum, c) => sum + c.maintenance, 0);
@@ -1266,7 +1282,7 @@
         } else alert(t('msg_not_enough_money'));
     }
 
-    // Unternehmen (NEU)
+    // Unternehmen
     function openBuyCompanyModal() {
         const content = document.getElementById("buyCompanyContent");
         let html = "";
@@ -1299,7 +1315,7 @@
         else {
             let html = "";
             player.companies.forEach((comp, idx) => {
-                const cost = comp.basePrice * 0.15; // Firmen Upgrades sind etwas teurer
+                const cost = comp.basePrice * 0.15;
                 html += `<div class="item-card"><div>${comp.name} (${t('lbl_level')} ${comp.level})</div><button onclick="upgradeCompany(${idx})" style="font-size:0.8em; padding:5px 10px;">${t('btn_expand_company')} (${formatMoney(cost)})</button></div>`;
             });
             content.innerHTML = html;
@@ -1313,7 +1329,7 @@
             player.cash -= cost;
             comp.level++;
             comp.basePrice *= 1.10;
-            comp.profit *= 1.20; // Firmen bringen mehr Profit beim Upgrade
+            comp.profit *= 1.20;
             comp.maintenance *= 1.10;
             updateUI();
             closeModal("upgradeCompanyModal");
